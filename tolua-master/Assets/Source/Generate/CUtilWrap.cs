@@ -8,6 +8,7 @@ public class CUtilWrap
 	{
 		L.BeginClass(typeof(CUtil), typeof(System.Object));
 		L.RegFunction("Log", Log);
+		L.RegFunction("LoadPrefab", LoadPrefab);
 		L.RegFunction("New", _CreateCUtil);
 		L.RegFunction("__tostring", ToLua.op_ToString);
 		L.EndClass();
@@ -46,6 +47,23 @@ public class CUtilWrap
 			string arg0 = ToLua.CheckString(L, 1);
 			CUtil.Log(arg0);
 			return 0;
+		}
+		catch (Exception e)
+		{
+			return LuaDLL.toluaL_exception(L, e);
+		}
+	}
+
+	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+	static int LoadPrefab(IntPtr L)
+	{
+		try
+		{
+			ToLua.CheckArgsCount(L, 1);
+			string arg0 = ToLua.CheckString(L, 1);
+			UnityEngine.GameObject o = CUtil.LoadPrefab(arg0);
+			ToLua.PushSealed(L, o);
+			return 1;
 		}
 		catch (Exception e)
 		{

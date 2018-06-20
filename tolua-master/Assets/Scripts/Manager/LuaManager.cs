@@ -21,6 +21,7 @@ public class LuaManager : Manager<LuaManager> {
 
         lua.LuaSetTop(0);
         LuaBinder.Bind(lua);
+        DelegateFactory.Init();   
         LuaCoroutine.Register(lua, this);
         lua.Start();
     }

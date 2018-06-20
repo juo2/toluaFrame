@@ -93,25 +93,25 @@ public static class CustomSettings
 #endif
       
         _GT(typeof(Behaviour)),
-        _GT(typeof(MonoBehaviour)),        
+        _GT(typeof(MonoBehaviour)),
         _GT(typeof(GameObject)),
         _GT(typeof(CUtil)),
         _GT(typeof(TrackedReference)),
         _GT(typeof(Application)),
         _GT(typeof(Physics)),
         _GT(typeof(Collider)),
-        _GT(typeof(Time)),        
+        _GT(typeof(Time)),
         _GT(typeof(Texture)),
         _GT(typeof(Texture2D)),
-        _GT(typeof(Shader)),        
+        _GT(typeof(Shader)),
         _GT(typeof(Renderer)),
         _GT(typeof(WWW)),
-        _GT(typeof(Screen)),        
+        _GT(typeof(Screen)),
         _GT(typeof(CameraClearFlags)),
-        _GT(typeof(AudioClip)),        
+        _GT(typeof(AudioClip)),
         _GT(typeof(AssetBundle)),
         _GT(typeof(ParticleSystem)),
-        _GT(typeof(AsyncOperation)).SetBaseType(typeof(System.Object)),        
+        _GT(typeof(AsyncOperation)).SetBaseType(typeof(System.Object)),
         _GT(typeof(LightType)),
         _GT(typeof(SleepTimeout)),
 #if UNITY_5_3_OR_NEWER && !UNITY_5_6_OR_NEWER
@@ -121,8 +121,8 @@ public static class CustomSettings
         _GT(typeof(Input)),
         _GT(typeof(KeyCode)),
         _GT(typeof(SkinnedMeshRenderer)),
-        _GT(typeof(Space)),      
-       
+        _GT(typeof(Space)),
+
 
         _GT(typeof(MeshRenderer)),
 #if !UNITY_5_4_OR_NEWER
@@ -133,25 +133,41 @@ public static class CustomSettings
 
         _GT(typeof(BoxCollider)),
         _GT(typeof(MeshCollider)),
-        _GT(typeof(SphereCollider)),        
+        _GT(typeof(SphereCollider)),
         _GT(typeof(CharacterController)),
         _GT(typeof(CapsuleCollider)),
-        
-        _GT(typeof(Animation)),        
-        _GT(typeof(AnimationClip)).SetBaseType(typeof(UnityEngine.Object)),        
+
+        _GT(typeof(Animation)),
+        _GT(typeof(AnimationClip)).SetBaseType(typeof(UnityEngine.Object)),
         _GT(typeof(AnimationState)),
         _GT(typeof(AnimationBlendMode)),
-        _GT(typeof(QueueMode)),  
+        _GT(typeof(QueueMode)),
         _GT(typeof(PlayMode)),
         _GT(typeof(WrapMode)),
 
         _GT(typeof(QualitySettings)),
-        _GT(typeof(RenderSettings)),                                                   
-        _GT(typeof(BlendWeights)),           
+        _GT(typeof(RenderSettings)),
+        _GT(typeof(BlendWeights)),
         _GT(typeof(RenderTexture)),
-        _GT(typeof(Resources)),     
+        _GT(typeof(Resources)),
         _GT(typeof(LuaProfiler)),
-        
+
+        _GT(typeof(FXGame.LuaBehaviour)),
+
+        _GT(typeof(RectTransform)),
+        _GT(typeof(Canvas)),
+        _GT(typeof(RenderMode)),
+        _GT(typeof(UnityEngine.UI.CanvasScaler)),
+        _GT(typeof(UnityEngine.UI.GraphicRaycaster)),
+        _GT(typeof(UnityEngine.EventSystems.EventSystem)),
+        _GT(typeof(UnityEngine.EventSystems.StandaloneInputModule)),
+        _GT(typeof(UnityEngine.Events.UnityEvent)),
+        _GT(typeof(UnityEngine.UI.CanvasScaler.ScaleMode)),
+        _GT(typeof(UnityEngine.UI.CanvasScaler.ScreenMatchMode)),
+        _GT(typeof(UnityEngine.UI.Button)),
+        _GT(typeof(UnityEngine.UI.Button.ButtonClickedEvent)),
+        _GT(typeof(UnityEngine.UI.Image)),
+        _GT(typeof(UnityEngine.UI.Text)),
     };
 
     public static List<Type> dynamicList = new List<Type>()

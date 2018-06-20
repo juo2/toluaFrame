@@ -6,7 +6,7 @@ local time = Timer.New(breakInfoFun,0.5,-1,1)
 require("Game/Common/Define")
 
 function Main()					
-	print("logic start")	
+	ModuleManager:OpenModule(ModuleType.Login)
 end
 
 --场景切换通知
@@ -16,4 +16,5 @@ function OnLevelWasLoaded(level)
 end
 
 function OnApplicationQuit()
+
 end

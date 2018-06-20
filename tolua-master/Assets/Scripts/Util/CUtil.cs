@@ -8,4 +8,9 @@ public class CUtil {
 	{
 		Debug.Log(str);
 	}
+
+    public static UnityEngine.GameObject LoadPrefab(string path)
+    {
+        return ResourceManager.Instance.LoadInstantiate<GameObject>(path);
+    }
 }
