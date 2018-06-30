@@ -168,6 +168,11 @@ public static class CustomSettings
         _GT(typeof(UnityEngine.UI.Button.ButtonClickedEvent)),
         _GT(typeof(UnityEngine.UI.Image)),
         _GT(typeof(UnityEngine.UI.Text)),
+        _GT(typeof(UnityEngine.EventSystems.PointerEventData)),
+        _GT(typeof(Rect)),
+        _GT(typeof(LeanTween)),
+        _GT(typeof(LeanTweenType)),
+        _GT(typeof(LTDescrImpl)),
     };
 
     public static List<Type> dynamicList = new List<Type>()

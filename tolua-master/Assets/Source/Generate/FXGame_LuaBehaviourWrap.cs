@@ -7,6 +7,9 @@ public class FXGame_LuaBehaviourWrap
 	public static void Register(LuaState L)
 	{
 		L.BeginClass(typeof(FXGame.LuaBehaviour), typeof(UnityEngine.MonoBehaviour));
+		L.RegFunction("OnBeginDrag", OnBeginDrag);
+		L.RegFunction("OnDrag", OnDrag);
+		L.RegFunction("OnEndDrag", OnEndDrag);
 		L.RegFunction("GetInstance", GetInstance);
 		L.RegFunction("__eq", op_Equality);
 		L.RegFunction("__tostring", ToLua.op_ToString);
@@ -14,6 +17,57 @@ public class FXGame_LuaBehaviourWrap
 		L.RegVar("objs", get_objs, set_objs);
 		L.RegVar("injectToLua", get_injectToLua, set_injectToLua);
 		L.EndClass();
+	}
+
+	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+	static int OnBeginDrag(IntPtr L)
+	{
+		try
+		{
+			ToLua.CheckArgsCount(L, 2);
+			FXGame.LuaBehaviour obj = (FXGame.LuaBehaviour)ToLua.CheckObject<FXGame.LuaBehaviour>(L, 1);
+			UnityEngine.EventSystems.PointerEventData arg0 = (UnityEngine.EventSystems.PointerEventData)ToLua.CheckObject<UnityEngine.EventSystems.PointerEventData>(L, 2);
+			obj.OnBeginDrag(arg0);
+			return 0;
+		}
+		catch (Exception e)
+		{
+			return LuaDLL.toluaL_exception(L, e);
+		}
+	}
+
+	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+	static int OnDrag(IntPtr L)
+	{
+		try
+		{
+			ToLua.CheckArgsCount(L, 2);
+			FXGame.LuaBehaviour obj = (FXGame.LuaBehaviour)ToLua.CheckObject<FXGame.LuaBehaviour>(L, 1);
+			UnityEngine.EventSystems.PointerEventData arg0 = (UnityEngine.EventSystems.PointerEventData)ToLua.CheckObject<UnityEngine.EventSystems.PointerEventData>(L, 2);
+			obj.OnDrag(arg0);
+			return 0;
+		}
+		catch (Exception e)
+		{
+			return LuaDLL.toluaL_exception(L, e);
+		}
+	}
+
+	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+	static int OnEndDrag(IntPtr L)
+	{
+		try
+		{
+			ToLua.CheckArgsCount(L, 2);
+			FXGame.LuaBehaviour obj = (FXGame.LuaBehaviour)ToLua.CheckObject<FXGame.LuaBehaviour>(L, 1);
+			UnityEngine.EventSystems.PointerEventData arg0 = (UnityEngine.EventSystems.PointerEventData)ToLua.CheckObject<UnityEngine.EventSystems.PointerEventData>(L, 2);
+			obj.OnEndDrag(arg0);
+			return 0;
+		}
+		catch (Exception e)
+		{
+			return LuaDLL.toluaL_exception(L, e);
+		}
 	}
 
 	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]

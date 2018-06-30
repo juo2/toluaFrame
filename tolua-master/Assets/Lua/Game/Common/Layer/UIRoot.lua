@@ -29,7 +29,7 @@ function M:CreatRoot()
     local cameraObject = UnityEngine.GameObject.New("UICamera")
     local camera = cameraObject:AddComponent(typeof(UnityEngine.Camera))
     camera.orthographicSize = 360 * (UnityEngine.Screen.height / 720)
-    camera.clearFlags = UnityEngine.CameraClearFlags.Depth
+    camera.clearFlags = UnityEngine.CameraClearFlags.SolidColor
     camera.orthographic = true
     camera.nearClipPlane = -8000
     camera.farClipPlane = 8000

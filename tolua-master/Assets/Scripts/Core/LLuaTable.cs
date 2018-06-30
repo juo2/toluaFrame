@@ -5,6 +5,9 @@ using System.Collections;
 using System;
 
 // The lua table operator base class.
+using UnityEngine.EventSystems;
+
+
 public class LLuaTable
 {
     // The lua table of this behavior.
@@ -83,7 +86,7 @@ public class LLuaTable
      * @param object cParam - The param.
      * @return object - The returned value.
      */
-    public object CallMethod(ref LuaFunction cResFunc, string strFunc, object cParam)
+    public object CallMethod(ref LuaFunction cResFunc, string strFunc, LuaTable cParam)
     {
         // Check function first.
         if (null == cResFunc)
@@ -120,6 +123,58 @@ public class LLuaTable
         {
             cResFunc.BeginPCall();
             cResFunc.Push(cParam);
+            cResFunc.PCall();
+            object ret = cResFunc.CheckVariant();
+            cResFunc.EndPCall();
+            return ret;
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(e);
+            cResFunc.EndPCall();
+            cResFunc = null;
+            return null;
+        }
+    }
+
+    public object CallMethod(ref LuaFunction cResFunc, string strFunc, LuaTable cParam,PointerEventData eventData)
+    {
+        // Check function first.
+        if (null == cResFunc)
+        {
+            // Check params.
+            if (string.IsNullOrEmpty(strFunc))
+            {
+                return null;
+            }
+
+            // Check table.
+            if (!Valid)
+            {
+                return null;
+            }
+
+            // Check function.
+            object cFuncObj = m_cLuaTable[strFunc];
+            if ((null == cFuncObj) || !(cFuncObj is LuaFunction))
+            {
+                return null;
+            }
+
+            // Get function.
+            cResFunc = (LuaFunction)cFuncObj;
+            if (null == cResFunc)
+            {
+                return null;
+            }
+        }
+
+        // Try to call this method.
+        try
+        {
+            cResFunc.BeginPCall();
+            cResFunc.Push(cParam);
+            cResFunc.Push(eventData);
             cResFunc.PCall();
             object ret = cResFunc.CheckVariant();
             cResFunc.EndPCall();

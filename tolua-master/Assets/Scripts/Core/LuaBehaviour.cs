@@ -3,6 +3,7 @@ using System;
 using LuaInterface;
 using System.Collections.Generic;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 namespace FXGame
 {
@@ -15,7 +16,7 @@ namespace FXGame
         public GameObject go;
     }
 
-    public class LuaBehaviour : MonoBehaviour
+    public class LuaBehaviour : MonoBehaviour , IBeginDragHandler, IDragHandler , IEndDragHandler
     {
         public string className;
         // Is ready or not.
@@ -91,6 +92,30 @@ namespace FXGame
             if (m_bReady)
             {
                 m_cBehavior.Start();
+            }
+        }
+		 
+		public void OnBeginDrag(PointerEventData eventData)
+        {
+            if (m_bReady)
+            {
+                m_cBehavior.OnBeginDrag(eventData);
+            }
+        }
+
+        public void OnDrag(PointerEventData eventData)
+        {
+            if (m_bReady)
+            {
+                m_cBehavior.OnDrag(eventData);
+            }
+        }
+
+		public void OnEndDrag(PointerEventData eventData)
+        {
+            if (m_bReady)
+            {
+                m_cBehavior.OnEndDrag(eventData);
             }
         }
 

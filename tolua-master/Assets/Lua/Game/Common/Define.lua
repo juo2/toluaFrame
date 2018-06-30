@@ -18,3 +18,6 @@ require("Game/MVC/Dispatcher")
 require("Game/MVC/Module")
 require("Game/MVC/Panel")
 require("Game/MVC/Window")
+
+require("Game/Widget/ScrollView")
+require("Game/Widget/TableView")

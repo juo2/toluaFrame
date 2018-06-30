@@ -3,6 +3,9 @@
 using LuaInterface;
 
 // The lua behavior base class.
+using UnityEngine.EventSystems;
+
+
 public class LLuaBehaviourInterface
 {
     // The callback method name.
@@ -74,6 +77,9 @@ public class LLuaBehaviourInterface
     private static readonly string ON_EVENT_ANIM_FLOAT = "OnEventAnimFloat";
     private static readonly string ON_EVENT_ANIM_STRING = "OnEventAnimString";
     private static readonly string ON_EVENT_ANIM_OBJECT = "OnEventAnimObject";
+    private static readonly string ON_BEGIN_DRAG = "OnBeginDrag";
+    private static readonly string ON_DRAG = "OnDrag";
+    private static readonly string ON_END_DRAG = "OnEndDrag";
 
     // The function for monobehavior callback event.
     private LuaFunction m_cAwakeFunc = null;
@@ -129,6 +135,9 @@ public class LLuaBehaviourInterface
     private LuaFunction m_cOnEventAnimFloat = null;
     private LuaFunction m_cOnEventAnimString = null;
     private LuaFunction m_cOnEventAnimObject = null;
+    private LuaFunction m_cOnBeginDragFunc = null;
+    private LuaFunction m_cOnDragFunc = null;
+    private LuaFunction m_cOnEndDragFunc = null;
 
     // The lua table operator of this behavior.
     private LLuaTable m_cLuaTableOpt = null;
@@ -177,6 +186,21 @@ public class LLuaBehaviourInterface
     public void Start()
     {
         CallMethod(ref m_cStartFunc, START, m_cLuaTableOpt.GetChunk());
+    }
+
+    public void OnBeginDrag(PointerEventData eventData)
+    {
+        CallMethod(ref m_cOnBeginDragFunc, ON_BEGIN_DRAG, m_cLuaTableOpt.GetChunk(),eventData);
+    }
+
+    public void OnDrag(PointerEventData eventData)
+    {
+        CallMethod(ref m_cOnDragFunc, ON_DRAG, m_cLuaTableOpt.GetChunk(),eventData);
+    }
+
+    public void OnEndDrag(PointerEventData eventData)
+    {
+        CallMethod(ref m_cOnEndDragFunc, ON_END_DRAG, m_cLuaTableOpt.GetChunk(),eventData);
     }
 
     public bool CreateClassInstance(string strClassName)
@@ -278,7 +302,7 @@ public class LLuaBehaviourInterface
      * @param object cParam - The param.
      * @return object - The number of result.
      */
-    public object CallMethod(ref LuaFunction cFunc, string strFunc, object cParam)
+    public object CallMethod(ref LuaFunction cFunc, string strFunc, LuaTable cParam)
     {
         if (null == m_cLuaTableOpt)
         {
@@ -286,6 +310,16 @@ public class LLuaBehaviourInterface
         }
 
         return m_cLuaTableOpt.CallMethod(ref cFunc, strFunc, cParam);
+    }
+
+    public object CallMethod(ref LuaFunction cFunc, string strFunc, LuaTable cParam,PointerEventData eventData)
+    {
+        if (null == m_cLuaTableOpt)
+        {
+            return null;
+        }
+
+        return m_cLuaTableOpt.CallMethod(ref cFunc, strFunc, cParam,eventData);
     }
 }
 

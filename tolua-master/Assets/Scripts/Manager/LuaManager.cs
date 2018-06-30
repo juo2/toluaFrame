@@ -8,10 +8,13 @@ public class LuaManager : Manager<LuaManager> {
 
     private LuaState lua;
 
+    private LuaLooper loop = null;
+
     public void Init()
     {
         this.InitLua();
         this.InitMain();
+        this.StartLooper();
     }
 
     public void InitLua()
@@ -33,6 +36,11 @@ public class LuaManager : Manager<LuaManager> {
         main.Call();
         main.Dispose();
         main = null;
+    }
+
+    void StartLooper() {
+        loop = gameObject.AddComponent<LuaLooper>();
+        loop.luaState = lua;
     }
 
     public LuaTable GetLuaTable(string name)
