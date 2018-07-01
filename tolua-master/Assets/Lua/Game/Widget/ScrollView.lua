@@ -1,7 +1,6 @@
 _G.ScrollView = class(UIBase,"ScrollView")
 
 ScrollView.inje_content = false
-ScrollView.inje_Button = false
 
 ScrollView._dragging = false
 ScrollView._lastMovePoint = Vector2.zero
@@ -32,10 +31,6 @@ function ScrollView:Awake()
     if self.inje_content then
         self._contentRect = self.inje_content:GetComponent(typeof(UnityEngine.RectTransform))
     end
-
-    self.inje_Button.onClick:AddListener(function ()
-        self:onClick()
-    end)
     
     self:SetContentSize(size)
 
@@ -45,7 +40,6 @@ function ScrollView:Awake()
 end
 
 function ScrollView:onClick()
-    local res = self:_validateOffset(self:GetContentOffset())
 end
 
 --设置content的size
