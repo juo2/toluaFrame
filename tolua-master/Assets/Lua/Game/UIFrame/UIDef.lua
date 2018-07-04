@@ -20,25 +20,25 @@ UIDef.ScreenType =
 
 UIDef.UIWindowID = 
 {
-    LoginWindow = {
-        path = "Prefabs/Login/LoginWindow.prefab",
+    WidgetWindow = {
+        path = "Prefabs/WidgetTest/WidgetWindow.prefab",
         layer = UIDef.UILayerType.ViewLayer,
-        lua = "Game/Modules/Login/View/LoginWindow",
+        lua = "Game/Modules/WidgetTest/View/WidgetWindow",
         screenType = UIDef.ScreenType.FullSceen
     },
 }
 
 UIDef.UIPanelID = 
 {
-    LoginWindow = 
+    WidgetWindow = 
     {
         {
-            path = "Prefabs/Login/LoginPanel1.prefab",
-            lua = "Game/Modules/Login/View/LoginPanel1",
+            path = "Prefabs/WidgetTest/ScrollViewTest.prefab",
+            lua = "Game/Modules/WidgetTest/View/ScrollViewTest",
         },
         {
-            path = "Prefabs/Login/LoginPanel2.prefab",
-            lua = "Game/Modules/Login/View/LoginPanel2",
+            path = "Prefabs/WidgetTest/TableViewTest.prefab",
+            lua = "Game/Modules/WidgetTest/View/TableViewTest",
         },
     },
 }

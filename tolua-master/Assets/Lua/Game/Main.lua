@@ -6,7 +6,7 @@ local time = Timer.New(breakInfoFun,0.5,-1,1)
 require("Game/Common/Define")
 
 function Main()					
-	ModuleManager:OpenModule(ModuleType.Login)
+	ModuleManager:OpenModule(ModuleType.WidgetTest)
 end
 
 --场景切换通知

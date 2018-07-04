@@ -1,7 +1,6 @@
 _G.ScrollView = class(UIBase,"ScrollView")
 
 ScrollView.inje_content = false
-ScrollView.inje_Button = false
 
 ScrollView._dragging = false
 ScrollView._lastMovePoint = Vector2.zero
@@ -14,6 +13,10 @@ ScrollView._minOffset = Vector2.zero
 ScrollView._tweenMaker = false
 ScrollView._handle = false
 ScrollView._isInertanceFinish = false
+ScrollView._innWidth = 0
+ScrollView._innHeight = 0
+ScrollView._contentX = 0
+ScrollView._contentY = 0
 
 --可设置的参数
 ScrollView.Dragable = true
@@ -33,33 +36,32 @@ function ScrollView:Awake()
     self._viewRect = self.gameObject:GetComponent(typeof(UnityEngine.RectTransform))
     if self.inje_content then
         self._contentRect = self.inje_content:GetComponent(typeof(UnityEngine.RectTransform))
+        self:SetContentSize()
     end
-
-    self.inje_Button.onClick:AddListener(function ()
-        self:onClick()
-    end)
     
-    self:SetContentSize(size)
-
     self._tweenMaker = UnityEngine.GameObject.New("TweenMaker")
     self._tweenMaker.transform:SetParent(self.transform)
     self._tweenMaker.transform.localPosition = Vector3.zero
 end
 
+function ScrollView:Start()
+    
+end
+
 function ScrollView:onClick()
-    local res = self:_validateOffset(self:GetContentOffset())
+
 end
 
 --设置content的size
 function ScrollView:SetContentSize(size)
     size = size or self._contentRect.sizeDelta
-
+   
     local viewSize = self._viewRect.sizeDelta
-    local width = math.max(viewSize.x,size.x)
-    local height = math.max(viewSize.y,size.y)
+    self._innWidth = math.max(viewSize.x,size.x)
+    self._innHeight = math.max(viewSize.y,size.y)
 
     if self.inje_content then
-        self._contentRect.sizeDelta = Vector2(width,height)
+        self._contentRect.sizeDelta = Vector2(self._innWidth,self._innHeight)
     end 
 
     self:_updateLimitOffset()
@@ -74,7 +76,7 @@ end
 
 function ScrollView:_updateLimitOffset()
     local size = Vector2(self._viewRect.sizeDelta.x,self._viewRect.sizeDelta.y)
-    local innSize = Vector2(self._contentRect.sizeDelta.x,self._contentRect.sizeDelta.y)
+    local innSize = Vector2(self._innWidth,self._innHeight)
 
     self._maxOffset.x = 0
     self._minOffset.x = size.x - innSize.x
@@ -89,9 +91,6 @@ function ScrollView:_updateLimitOffset()
     if not self.Vertical then
         self._minOffset.y = 0
     end
-
-    Util.dump(self._maxOffset,"self._maxOffset")
-    Util.dump(self._minOffset,"self._minOffset")
 end
 
 --边界检测
@@ -144,8 +143,6 @@ function ScrollView:OnDrag(eventData)
         if self:_validateOffset(vec) then
             self._scrollDistance = self._scrollDistance * self.dragValidateSpeed
         end
-        Util.dump(self._scrollDistance,"self._scrollDistance")
-
         self:SetContentOffset(self:GetContentOffset() + self._scrollDistance)
     end
 end

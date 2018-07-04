@@ -1,13 +1,13 @@
 ModuleType = 
 {
-    Login = "Login"
+    WidgetTest = "WidgetTest"
 }
 
 ModuleConfig  = 
 {
-    Login = {
-        cache = "Game/Modules/Login/LoginData",
-        module = "Game/Modules/Login/LoginModule",
-        controller = "Game/Modules/Login/LoginController",
+    WidgetTest = {
+        cache = "Game/Modules/WidgetTest/WidgetData",
+        module = "Game/Modules/WidgetTest/WidgetModule",
+        controller = "Game/Modules/WidgetTest/WidgetController",
     },
 }
