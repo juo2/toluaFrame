@@ -23,6 +23,8 @@ ScrollView.Inertia = true
 ScrollView.ResistanceSpeed = 0.65
 ScrollView.LimitValue = 1
 ScrollView.InertanceSpeed = 0.96
+ScrollView.dragSpeed = 0.5
+ScrollView.dragValidateSpeed = 0.8
 
 --委托
 ScrollView.onScrollingHandler = false
@@ -88,8 +90,8 @@ function ScrollView:_updateLimitOffset()
         self._minOffset.y = 0
     end
 
-    --Util.dump(self._maxOffset,"self._maxOffset")
-    --Util.dump(self._minOffset,"self._minOffset")
+    Util.dump(self._maxOffset,"self._maxOffset")
+    Util.dump(self._minOffset,"self._minOffset")
 end
 
 --边界检测
@@ -104,13 +106,11 @@ function ScrollView:_validateOffset(point)
     if point.x ~= x or point.y ~= y then
         point.x = x;
         point.y = y;
-        --Util.dump(point,"point true")
         return true;
     end
     
     point.x = x;
     point.y = y;
-    --Util.dump(point,"point false")
     return false;
 end
 
@@ -139,10 +139,12 @@ function ScrollView:OnDrag(eventData)
             self._scrollDistance.y = 0
         end
 
+        self._scrollDistance = self._scrollDistance * self.dragSpeed
         local vec = self:GetContentOffset() + self._scrollDistance
         if self:_validateOffset(vec) then
-            self._scrollDistance = self._scrollDistance * 0.2
+            self._scrollDistance = self._scrollDistance * self.dragValidateSpeed
         end
+        Util.dump(self._scrollDistance,"self._scrollDistance")
 
         self:SetContentOffset(self:GetContentOffset() + self._scrollDistance)
     end
