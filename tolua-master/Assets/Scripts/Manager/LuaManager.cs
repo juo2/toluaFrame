@@ -75,4 +75,9 @@ public class LuaManager : Manager<LuaManager> {
     {
         return LuaDLL.luaopen_mime_core(L);
     }
+
+	public void DoString(string str)
+	{
+		lua.DoString(str);
+	}
 }

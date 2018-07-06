@@ -98,3 +98,7 @@ end
 
 --end
 --关闭一个窗口UI 
+
+function M:GetView(viewId)
+    return self.AllView[viewId]
+end

@@ -67,3 +67,18 @@ function Util.dump(value, desciption, nesting)
         print(line)
     end
 end
+
+function Util.Find(gameObject,path,type)
+    if(not gameObject)then return nil end;
+    local tran = gameObject.transform:Find(path)
+    if tran == nil then
+        -- log("path:"..path.." 为null")
+        return
+    end
+    local obj = tran.gameObject
+    if type == nil then
+        return obj
+    else
+        return obj:GetComponent(type)
+    end
+end

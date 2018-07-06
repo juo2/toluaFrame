@@ -1,45 +1,3 @@
-_G.TableViewCell = class("TableViewCell")
-TableViewCell.INVALID_INDEX = -1
-TableViewCell.index = TableViewCell.INVALID_INDEX
-TableViewCell.object = nil
-TableViewCell.position = Vector2.zero
-TableViewCell.size = Vector2.zero
-
-function TableViewCell:ctor(index,position,size,object)
-    self.size = size
-    self.object = object
-
-    if self.object then
-        self.object.transform.localScale = Vector3.one
-        local rect = self.object:GetComponent(typeof(UnityEngine.RectTransform))
-        rect.sizeDelta = size
-        rect.pivot = Vector2.zero
-    end
-
-    self:Awake(index,position)
-end
-
-function TableViewCell:Awake(index,position)
-    self.index = index
-    self.position = position
-
-    if self.object then
-        self.object:SetActive(true)
-        self.object.transform.localPosition = position
-    end
-end
-
-function TableViewCell:UpdatePosition(pos)
-    if self.object then
-        self.object.transform.localPosition = pos + self.position
-    end
-end
-
-function TableViewCell:Reset()
-    self.index = self.INVALID_INDEX
-    self.object:SetActive(false)
-end
-
 _G.TableView = class(ScrollView,"TableView")
 
 TableView.inje_Button = false
@@ -48,9 +6,12 @@ TableView.inje_Prefab = false
 TableView._positions = {}
 TableView._cellUseList = {}
 TableView._cellPoolList = {}
+TableView._cellUseIndices = {}
 
 TableView._cellsSize = Vector2(100,100)
-TableView._cellCount = 8
+TableView._cellCount = nil
+TableView._oldCellCount = nil
+TableView._first = nil
 TableView.onCellHandle = nil
 
 TableView.INVALID_INDEX = -1
@@ -67,57 +28,69 @@ function TableView:Awake()
     end
 end
 
+function TableView:SetCellCountAndSize(cellCount,size)
+    self._cellsSize = size
+    self:SetCellCount(cellCount)
+end
+
 function TableView:SetCellCount(cellCount)
+    self._oldCellCount = self._cellCount
     self._cellCount = cellCount
 end
 
-function TableView:SetCellHandle()
-
-end
-
-function TableView:SetData()
-    
+function TableView:SetCellHandle(handle)
+    self.onCellHandle = handle
 end
 
 function TableView:OnClick()
-    local beigin = self:_cellBeginIndexFromOffset()
-    local endIdx = self:_cellEndIndexFromOffset()
-
-    Util.dump(beigin,"beigin")
-    Util.dump(endIdx,"endIdx")
+    self:ReloadData()
 end
 
 function TableView:ReloadData()
-    
     self:ClearData()    
     self:_updatePositions()
-
+    self:_reloadJump()
+    
     self:_onScrolling()
+end
+
+function TableView:AddNode()
+
+end 
+
+function TableView:RemoveNode()
+
 end
 
 function TableView:_updatePositions()
     if self.Horizontal then
-        self:SetContentSize(Vector2(self._cellsSize.x * self._cellCount,self._cellsSize.y))
         for i=1,self._cellCount do
-            table.insert( self._positions,self._cellsSize.x * i)
+            local pos = Vector2(self._cellsSize.x * (i-1),0)
+            table.insert( self._positions,pos)
         end
+        self:SetContentSize(Vector2(self._cellsSize.x * self._cellCount,self._cellsSize.y),true)
     elseif self.Vertical then
-        local height = self._cellsSize.y * self._cellCount
-        self:SetContentSize(Vector2(self._cellsSize.x,height))
+        local height = self._cellsSize.y * (self._cellCount - 1)
         height = math.max(height,self._viewRect.sizeDelta.y)
         local i = self._cellCount
         while i > 0 do
-            table.insert( self._positions,height)
+            local pos = Vector2(0,height)
+            table.insert( self._positions,pos)
             height = height - self._cellsSize.y
             i = i - 1
         end
+        self:SetContentSize(Vector2(self._cellsSize.x,self._cellCount * self._cellsSize.y),true)
     end
 end
 
 function TableView:_onScrolling()
+    self:super("ScrollView","_onScrolling");
+
     if self._cellCount == 0 then
         return 
     end
+    local beiginIdx = self:_cellBeginIndexFromOffset()
+    local endIdx = self:_cellEndIndexFromOffset()
 
     self:_removeCellInvisible()
     self:_addCellVisible()
@@ -131,7 +104,9 @@ function TableView:_removeCellInvisible()
 
     for k,v in pairs(self._cellUseList) do
         if v.index < beiginIdx or v.index > endIdx then
-            self:_removeFromUse(k)
+            if self:_IsUseContainIndex(k) then
+                self:_removeFromUse(k)
+            end
         end
     end
 end
@@ -139,8 +114,9 @@ end
 function TableView:_removeFromUse(index)
     local cell = self._cellUseList[index]
     cell:Reset()
-    self._cellPoolList[index] = cell 
+    table.insert( self._cellPoolList,cell) 
     self._cellUseList[index] = nil
+    self._cellUseIndices[index] = nil
 end
 
 --把看得见到cell从对象池取出，或创建
@@ -149,22 +125,35 @@ function TableView:_addCellVisible()
     local endIdx = self:_cellEndIndexFromOffset()
 
     for i=beiginIdx,endIdx do
-        if self:_IsNotUseContainIndex(i) then
+        if not self:_IsUseContainIndex(i) then
             self:_addCellUse(i)
         end
     end
 end
 
 function TableView:_addCellUse(index)
-    local cell = self:_getCellFromPool(index)
+    local cell = self:_getCellFromPool()
     if cell then
         cell:Awake(index,self._positions[index])
     else
         local prefab = UnityEngine.GameObject.Instantiate(self.inje_Prefab)
         prefab.transform:SetParent(self.transform)
-        cell = TableViewCell.New(index,self._positions[index],self._cellsSize,prefab)
+        cell = TableViewCell.New(
+            {
+                index = index,
+                position = self._positions[index],
+                size = self._cellsSize,
+                object = prefab,
+            }
+        )
     end
+    
+    self._cellUseIndices[index] = true
     self._cellUseList[index] = cell
+
+    if self.onCellHandle then
+        self.onCellHandle(index,cell.object)
+    end
 end
 
 function TableView:_updateCellPosition()
@@ -173,14 +162,19 @@ function TableView:_updateCellPosition()
     end
 end
 
-function TableView:_IsNotUseContainIndex(index)
-    return self._cellUseList[index] == nil
+function TableView:_IsUseContainIndex(index)
+    return self._cellUseIndices[index]
 end
 
 --从对象池抽取一个元素
 function TableView:_getCellFromPool()
-    local cell = self._cellPoolList[index]
-    self._cellPoolList[index] = nil
+    local index = next(self._cellPoolList)
+    local cell = nil
+    if index then
+        cell = self._cellPoolList[index]
+        self._cellPoolList[index] = nil
+    end
+
     return cell
 end
 
@@ -190,11 +184,13 @@ function TableView:_cellBeginIndexFromOffset()
         return index
     end
 
+    local contentOffset = self:GetContentOffset()
     if self.Horizontal then
-        
+        local offset = math.max(0,-contentOffset.x / self._cellsSize.x)
+        index = math.floor(offset) + 1
     elseif self.Vertical then
-        local contentOffset = self:GetContentOffset()
-        index = math.floor((math.abs(contentOffset.y) + self._cellsSize.y) / self._cellsSize.y)
+        local offset = math.max(0,contentOffset.y + self._innHeight - self._viewRect.sizeDelta.y)  
+        index = math.floor( offset / self._cellsSize.y ) + 1
     end
 
     return index
@@ -206,18 +202,49 @@ function TableView:_cellEndIndexFromOffset()
         return index
     end
 
+    local contentOffset = self:GetContentOffset()
     if self.Horizontal then
-        
+        local offset = math.max(0,contentOffset.x + self._innWidth - self._viewRect.sizeDelta.x)  
+        index = self._cellCount - math.floor( offset / self._cellsSize.x )
     elseif self.Vertical then
-        local contentOffset = self:GetContentOffset()
-        local topContentOffsetY = contentOffset.y + self._contentRect.sizeDelta.y 
-        local offsetY = topContentOffsetY - self._viewRect.sizeDelta.y
-        index = self._cellCount - math.floor(  offsetY / self._cellsSize.y )
+        local offset = math.max( 0,-contentOffset.y / self._cellsSize.y)  
+        index = self._cellCount - math.floor(offset)
     end
 
     return index
 end
 
+function TableView:_reloadJump()
+    if self._first == nil then
+        self._first = true
+    elseif self._first then
+        self._first = false
+    end
+
+    if self._first then
+        self:SetTop()
+    else
+        self:_setOriginPosition()
+    end
+end
+
+function TableView:_setOriginPosition()
+    if self._oldCellCount  then
+        local offsetCount = self._cellCount - self._oldCellCount
+        if self.Vertical then
+            local offset = math.min( 0,self:GetContentOffset().y - offsetCount * self._cellsSize.y )
+            self:SetContentOffset(Vector2(0,offset))
+        end
+        if self.Horizontal then
+            local offset = math.max(self:GetContentOffset().x,self._viewRect.sizeDelta.x - self._innWidth)
+            self:SetContentOffset(Vector2(offset,0))
+        end
+    end
+end
+
 function TableView:ClearData()
     self._positions = {}
+    for k,v in pairs(self._cellUseList) do
+        self:_removeFromUse(k)
+    end
 end
