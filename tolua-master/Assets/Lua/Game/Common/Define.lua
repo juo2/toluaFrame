@@ -21,5 +21,5 @@ require("Game/MVC/Window")
 
 require("Game/Widget/ScrollView")
 require("Game/Widget/GridCell")
-require("Game/Widget/TableView")
 require("Game/Widget/GridView")
+require("Game/Widget/TableView")

@@ -25,7 +25,6 @@ end
 function GridCell:Awake(index,position)
     self.index = index
     self.position = position
-
     if self.object then
         self.object:SetActive(true)
         self.object.transform.localPosition = position

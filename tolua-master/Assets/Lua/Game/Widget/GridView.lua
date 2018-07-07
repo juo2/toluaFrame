@@ -4,10 +4,9 @@ GridView.inje_Prefab = false
 
 GridView._positions = {}
 GridView._cellUseList = {}
-GridView._cellPoolList = {}
 GridView._cellUseIndices = {}
 
-GridView._cellsSize = Vector2(100,100)
+GridView._cellsSize = Vector2.zero
 GridView._cellCount = nil
 GridView._columns = nil
 GridView._rows = nil
@@ -87,9 +86,20 @@ end
 --更新位置信息
 function GridView:_updatePositions()
     if self.Horizontal then
-        for i=1,self._cellCount do
-            local pos = Vector2(self._cellsSize.x * (i-1),0)
-            table.insert( self._positions,pos)
+        for col=1,self._columns do
+            local width = self._cellsSize.x * (col-1)
+            local height = self._cellsSize.y * (self._rows - 1)
+            local opRow = self._rows
+            while opRow > 0 do
+                opRow = opRow - 1
+                local row = self._rows - opRow
+                if (row -1)*self._columns +col > self._cellCount then
+                    break
+                end
+                local pos = Vector2(width,height)
+                table.insert( self._positions,pos)
+                height = height - self._cellsSize.y
+            end
         end
         self:SetContentSize(Vector2(self._cellsSize.x * self._cellCount,self._cellsSize.y),true)
     elseif self.Vertical then
@@ -99,14 +109,14 @@ function GridView:_updatePositions()
             opRow = opRow - 1
             for col=1,self._columns do
                 local row = self._rows - opRow
-                if row * col >= self._cellCount then
+                if (row -1)*self._columns +col > self._cellCount then
                     break
                 end
                 local width = self._cellsSize.x * (col-1)
                 local pos = Vector2(width,height)
                 table.insert( self._positions,pos)
-                height = height - self._cellsSize.y
             end
+            height = height - self._cellsSize.y
         end 
     end
     self:SetContentSize(Vector2(self._columns * self._cellsSize.x,self._rows * self._cellsSize.y),true)
@@ -144,8 +154,6 @@ end
 function GridView:_removeFromUse(index)
     local cell = self._cellUseList[index]
     cell:Reset()
-    table.insert( self._cellPoolList,cell) 
-    self._cellUseList[index] = nil
     self._cellUseIndices[index] = nil
 end
 
@@ -162,7 +170,7 @@ function GridView:_addCellVisible()
 end
 
 function GridView:_addCellUse(index)
-    local cell = self:_getCellFromPool()
+    local cell = self:_getCellFromPool(index)
     if cell then
         cell:Awake(index,self._positions[index])
     else
@@ -176,19 +184,19 @@ function GridView:_addCellUse(index)
                 object = prefab,
             }
         )
+        if self.onCellHandle then
+            self.onCellHandle(index,cell.object)
+        end
     end
-    
     self._cellUseIndices[index] = true
     self._cellUseList[index] = cell
-
-    if self.onCellHandle then
-        self.onCellHandle(index,cell.object)
-    end
 end
 
 function GridView:_updateCellPosition()
     for k,v in pairs(self._cellUseList) do
-        v:UpdatePosition(self:GetContentOffset())
+        if self:_IsUseContainIndex(k) then
+            v:UpdatePosition(self:GetContentOffset())
+        end
     end
 end
 
@@ -197,17 +205,12 @@ function GridView:_IsUseContainIndex(index)
 end
 
 --从对象池抽取一个元素
-function GridView:_getCellFromPool()
-    local index = next(self._cellPoolList)
-    local cell = nil
-    if index then
-        cell = self._cellPoolList[index]
-        self._cellPoolList[index] = nil
-    end
-
+function GridView:_getCellFromPool(index)
+    local cell = self._cellUseList[index]
     return cell
 end
 
+--根据拖动的位置计算开始的index
 function GridView:_cellBeginIndexFromOffset()
     local index = self.INVALID_INDEX
     if self._cellCount == 0 then
@@ -217,15 +220,16 @@ function GridView:_cellBeginIndexFromOffset()
     local contentOffset = self:GetContentOffset()
     if self.Horizontal then
         local offset = math.max(0,-contentOffset.x / self._cellsSize.x)
-        index = math.floor(offset) + 1
+        index = math.floor(offset) * self._rows +  1 
     elseif self.Vertical then
-        local offset = math.max(0,contentOffset.y + self._innHeight - self._viewRect.sizeDelta.y)  
-        index = math.floor( offset / self._cellsSize.y ) + 1
+        local offset = math.max(0,contentOffset.y + self._innHeight - self._viewRect.sizeDelta.y) 
+        index = math.floor( offset / self._cellsSize.y ) * self._columns + 1
     end
 
     return index
 end
 
+--根据拖动的位置计算结束的index
 function GridView:_cellEndIndexFromOffset()
     local index = self.INVALID_INDEX
     if self._cellCount == 0 then
@@ -235,10 +239,10 @@ function GridView:_cellEndIndexFromOffset()
     local contentOffset = self:GetContentOffset()
     if self.Horizontal then
         local offset = math.max(0,contentOffset.x + self._innWidth - self._viewRect.sizeDelta.x)  
-        index = self._cellCount - math.floor( offset / self._cellsSize.x )
+        index = self._cellCount - math.floor( offset / self._cellsSize.x )* self._rows
     elseif self.Vertical then
         local offset = math.max( 0,-contentOffset.y / self._cellsSize.y)  
-        index = self._cellCount - math.floor(offset)
+        index = math.min(self._cellCount , (self._rows - math.floor(offset)) * self._columns ) 
     end
 
     return index
@@ -250,7 +254,6 @@ function GridView:_reloadJump()
     elseif self._first then
         self._first = false
     end
-
     if self._first then
         self:SetTop()
     else
@@ -260,14 +263,15 @@ end
 
 function GridView:_setOriginPosition()
     if self._oldCellCount  then
-        local offsetCount = self._cellCount - self._oldCellCount
-        if self.Vertical then
-            local offset = math.min( 0,self:GetContentOffset().y - offsetCount * self._cellsSize.y )
-            self:SetContentOffset(Vector2(0,offset))
-        end
         if self.Horizontal then
+            local offsetCount = (self._cellCount - self._oldCellCount) / self._rows
             local offset = math.max(self:GetContentOffset().x,self._viewRect.sizeDelta.x - self._innWidth)
             self:SetContentOffset(Vector2(offset,0))
+        end
+        if self.Vertical then
+            local offsetCount = (self._cellCount - self._oldCellCount) / self._columns
+            local offset = math.min( 0,self:GetContentOffset().y - offsetCount * self._cellsSize.y )
+            self:SetContentOffset(Vector2(0,offset))
         end
     end
 end
@@ -275,6 +279,8 @@ end
 function GridView:ClearData()
     self._positions = {}
     for k,v in pairs(self._cellUseList) do
-        self:_removeFromUse(k)
+        if self:_IsUseContainIndex(k) then
+            self:_removeFromUse(k)
+        end
     end
 end
