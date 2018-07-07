@@ -40,5 +40,9 @@ UIDef.UIPanelID =
             path = "Prefabs/WidgetTest/TableViewTest.prefab",
             lua = "Game/Modules/WidgetTest/View/TableViewTest",
         },
+        {
+            path = "Prefabs/WidgetTest/GridViewTest.prefab",
+            lua = "Game/Modules/WidgetTest/View/GridViewTest",
+        },
     },
 }

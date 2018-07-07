@@ -1,12 +1,12 @@
-_G.TableViewCell = class("TableViewCell")
+_G.GridCell = class("GridCell")
 
-TableViewCell.INVALID_INDEX = -1
-TableViewCell.index = TableViewCell.INVALID_INDEX
-TableViewCell.object = nil
-TableViewCell.position = Vector2.zero
-TableViewCell.size = Vector2.zero
+GridCell.INVALID_INDEX = -1
+GridCell.index = GridCell.INVALID_INDEX
+GridCell.object = nil
+GridCell.position = Vector2.zero
+GridCell.size = Vector2.zero
 
-function TableViewCell:ctor(tab)
+function GridCell:ctor(tab)
     self.index = tab.index
     self.position = tab.position
     self.size = tab.size
@@ -22,7 +22,7 @@ function TableViewCell:ctor(tab)
     self:Awake(self.index,self.position)
 end
 
-function TableViewCell:Awake(index,position)
+function GridCell:Awake(index,position)
     self.index = index
     self.position = position
 
@@ -32,13 +32,13 @@ function TableViewCell:Awake(index,position)
     end
 end
 
-function TableViewCell:UpdatePosition(pos)
+function GridCell:UpdatePosition(pos)
     if self.object then
         self.object.transform.localPosition = pos + self.position
     end
 end
 
-function TableViewCell:Reset()
+function GridCell:Reset()
     self.index = self.INVALID_INDEX
     self.object:SetActive(false)
 end
