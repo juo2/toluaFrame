@@ -37,31 +37,6 @@ function TableView:_removeFromUse(index)
     self._cellUseIndices[index] = nil
 end
 
-function TableView:_addCellUse(index)
-    local cell = self:_getCellFromPool()
-    if cell then
-        cell:Awake(index,self._positions[index])
-    else
-        local prefab = UnityEngine.GameObject.Instantiate(self.inje_Prefab)
-        prefab.transform:SetParent(self.transform)
-        cell = GridCell.New(
-            {
-                index = index,
-                position = self._positions[index],
-                size = self._cellsSize,
-                object = prefab,
-            }
-        )
-    end
-    
-    self._cellUseIndices[index] = true
-    self._cellUseList[index] = cell
-
-    if self.onCellHandle then
-        self.onCellHandle(index,cell.object)
-    end
-end
-
 --从对象池抽取一个元素
 function TableView:_getCellFromPool()
     local index = next(self._cellPoolList)
@@ -72,4 +47,21 @@ function TableView:_getCellFromPool()
     end
 
     return cell
+end
+
+function TableView:_updateCellHandleInner(index,cell)
+    if self.onCellHandle and cell and not self:_isHandle(index) then
+        self.onCellHandle(index,cell.object)
+        self._IsHandleMap[index] = true
+    end
+end
+
+function TableView:_clearData()
+    self._positions = {}
+    self._cellLoadList = {}
+end
+
+function TableView:OnDestroy()
+    self:super("GridView","OnDestroy")
+    self._cellPoolList = {}
 end

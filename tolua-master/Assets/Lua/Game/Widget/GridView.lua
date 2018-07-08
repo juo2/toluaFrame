@@ -2,16 +2,20 @@ _G.GridView = class(ScrollView,"GridView")
 
 GridView.inje_Prefab = false
 
+GridView.AsynAmount = 1
+
 GridView._positions = {}
 GridView._cellUseList = {}
 GridView._cellUseIndices = {}
+GridView._cellLoadList = {}
+GridView._IsHandleMap = {}
 
 GridView._cellsSize = Vector2.zero
 GridView._cellCount = nil
 GridView._columns = nil
 GridView._rows = nil
 GridView._oldCellCount = nil
-GridView._first = nil
+GridView._first = true
 GridView.onCellHandle = nil
 
 GridView.INVALID_INDEX = -1
@@ -22,6 +26,8 @@ function GridView:Awake()
     if self.inje_Prefab then
         self.inje_Prefab:SetActive(false)
     end
+
+    self:_beginLoadUpdate()
 end
 
 function GridView:SetParam(param)
@@ -66,9 +72,25 @@ function GridView:SetCellHandle(handle)
     self.onCellHandle = handle
 end
 
+--刷新子容器
+function GridView:UpdateCellHandle(index)
+    local cell = self:GetCellByIndex(index)
+    if self.onCellHandle and cell then
+        self._IsHandleMap[index] = false
+        if self:_IsUseContainIndex(index) then
+            self:_updateCellHandleInner(index,cell)
+        end
+    end
+end
+
+--根据索引获得自容器
+function GridView:GetCellByIndex(index)
+    return self._cellUseList[index]
+end
+
 --开始渲染
 function GridView:ReloadData()
-    self:ClearData()    
+    self:_clearData()    
     self:_updatePositions()
     self:_reloadJump()
     
@@ -101,7 +123,6 @@ function GridView:_updatePositions()
                 height = height - self._cellsSize.y
             end
         end
-        self:SetContentSize(Vector2(self._cellsSize.x * self._cellCount,self._cellsSize.y),true)
     elseif self.Vertical then
         local height = self._cellsSize.y * (self._rows - 1)
         local opRow = self._rows
@@ -119,7 +140,7 @@ function GridView:_updatePositions()
             height = height - self._cellsSize.y
         end 
     end
-    self:SetContentSize(Vector2(self._columns * self._cellsSize.x,self._rows * self._cellsSize.y),true)
+    self:SetContentSize(Vector2(self._columns * self._cellsSize.x,self._rows * self._cellsSize.y))
 end
 
 --找到开始的index和结束的index并刷新面板
@@ -129,8 +150,6 @@ function GridView:_onScrolling()
     if self._cellCount == 0 then
         return 
     end
-    local beiginIdx = self:_cellBeginIndexFromOffset()
-    local endIdx = self:_cellEndIndexFromOffset()
 
     self:_removeCellInvisible()
     self:_addCellVisible()
@@ -173,28 +192,40 @@ function GridView:_addCellUse(index)
     local cell = self:_getCellFromPool(index)
     if cell then
         cell:Awake(index,self._positions[index])
+        self:_updateCellHandleInner(index,cell)
     else
-        local prefab = UnityEngine.GameObject.Instantiate(self.inje_Prefab)
-        prefab.transform:SetParent(self.transform)
-        cell = GridCell.New(
-            {
-                index = index,
-                position = self._positions[index],
-                size = self._cellsSize,
-                object = prefab,
-            }
-        )
-        if self.onCellHandle then
-            self.onCellHandle(index,cell.object)
-        end
+        table.insert(self._cellLoadList,index)
     end
     self._cellUseIndices[index] = true
+end
+
+function GridView:_addCellUseAsyn(index)
+    local prefab = UnityEngine.GameObject.Instantiate(self.inje_Prefab)
+    prefab.transform:SetParent(self.transform)
+    local cell = GridCell.New(
+        {
+            index = index,
+            position = self._positions[index],
+            size = self._cellsSize,
+            object = prefab,
+        }
+    )
+    cell:UpdatePosition(self:GetContentOffset())
+    self:_updateCellHandleInner(index,cell)
     self._cellUseList[index] = cell
+end
+
+function GridView:_updateCellHandleInner(index,cell)
+    if self.onCellHandle and cell and not self:_isHandle(index) then
+        self.onCellHandle(index,cell.object)
+        self._IsHandleMap[index] = true
+    end
 end
 
 function GridView:_updateCellPosition()
     for k,v in pairs(self._cellUseList) do
         if self:_IsUseContainIndex(k) then
+            v:Awake(k,self._positions[k])
             v:UpdatePosition(self:GetContentOffset())
         end
     end
@@ -242,23 +273,23 @@ function GridView:_cellEndIndexFromOffset()
         index = self._cellCount - math.floor( offset / self._cellsSize.x )* self._rows
     elseif self.Vertical then
         local offset = math.max( 0,-contentOffset.y / self._cellsSize.y)  
-        index = math.min(self._cellCount , (self._rows - math.floor(offset)) * self._columns ) 
+        if (self._rows - math.floor(offset)) * self._columns < 0 then
+            index = self._cellCount
+        else
+            index = (self._rows - math.floor(offset)) * self._columns - (self._rows * self._columns - self._cellCount)
+        end
     end
 
     return index
 end
 
 function GridView:_reloadJump()
-    if self._first == nil then
-        self._first = true
-    elseif self._first then
-        self._first = false
-    end
     if self._first then
         self:SetTop()
     else
         self:_setOriginPosition()
     end
+    self._first = false
 end
 
 function GridView:_setOriginPosition()
@@ -276,11 +307,51 @@ function GridView:_setOriginPosition()
     end
 end
 
-function GridView:ClearData()
-    self._positions = {}
-    for k,v in pairs(self._cellUseList) do
-        if self:_IsUseContainIndex(k) then
-            self:_removeFromUse(k)
+function GridView:_isHandle(index)
+    return self._IsHandleMap[index]
+end
+
+function GridView:_beginLoadUpdate()
+    if not self._loadHandle then
+        self._loadHandle = UpdateBeat:CreateListener(self.LoadUpdate, self)
+    end
+    UpdateBeat:AddListener(self._loadHandle)	
+end
+
+function GridView:_endLoadUpdate()
+    if self._loadHandle then
+        UpdateBeat:RemoveListener(self._loadHandle)	
+    end
+end
+
+function GridView:LoadUpdate()
+    for i=1,self.AsynAmount do
+        if #self._cellLoadList > 0 then
+            local index = table.remove( self._cellLoadList,1)
+            if self:_IsUseContainIndex(index) then
+                self:_addCellUseAsyn(index)
+            end
         end
     end
+end
+
+function GridView:_clearData()
+    self._positions = {}
+    self._IsHandleMap = {}
+    self._cellLoadList = {}
+end
+
+function GridView:OnDestroy()
+    self:super("ScrollView","OnDestroy")
+    self:_clearData()
+    self:_endLoadUpdate()
+
+    self._cellUseList = {}
+    self._cellsSize = Vector2.zero
+    self._cellCount = nil
+    self._columns = nil
+    self._rows = nil
+    self._oldCellCount = nil
+    self._first = true
+    self.onCellHandle = nil
 end

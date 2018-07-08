@@ -15,6 +15,7 @@ function TableViewTest:Open()
     tableView:SetCellHandle(function (idx,item)
         local txt = Util.Find(item,"Text",typeof(UnityEngine.UI.Text))
         txt.text = idx
+        Util.log("刷新tableView")
     end)
     tableView:SetParam({
         size = Vector2(100,100),

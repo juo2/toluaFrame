@@ -53,7 +53,7 @@ function ScrollView:onClick()
 end
 
 --设置content的size
-function ScrollView:SetContentSize(size,notUpdateView)
+function ScrollView:SetContentSize(size)
     size = size or self._contentRect.sizeDelta
    
     local viewSize = self._viewRect.sizeDelta
@@ -63,10 +63,6 @@ function ScrollView:SetContentSize(size,notUpdateView)
     if self.inje_content then
         self._contentRect.sizeDelta = Vector2(self._innWidth,self._innHeight)
     end 
-
-    if self:GetContentOffset() == Vector2.zero then
-        self:SetContentOffset(Vector2(0,0),notUpdateView)
-    end
 
     self:_updateLimitOffset()
 end
@@ -182,26 +178,24 @@ function ScrollView:EndInertia()
 end
 
 --设置content位置
-function ScrollView:SetContentOffset(offset,notUpdateView)
+function ScrollView:SetContentOffset(offset)
     if self.inje_content then
         self.inje_content.transform.localPosition = Vector3(offset.x,offset.y,0)
     end
     self._contentX = offset.x
     self._contentY = offset.y
-    if not notUpdateView then
-        self:_onScrolling()
-    end
+    self:_onScrolling()
 end
 
 --设置content位置缓动
-function ScrollView:SetContentOffsetInDuration(offset,duration,notUpdateView)
+function ScrollView:SetContentOffsetInDuration(offset,duration)
     duration = duration or 0.2
     local containerLocalPosition = self:GetContentOffset()
     LeanTween.cancel(self._tweenMaker)
     local tween = LeanTween.value(self._tweenMaker,containerLocalPosition,offset,duration)
     tween:setEase(LeanTweenType.easeInQuad)
     tween:setOnUpdate(System.Action_UnityEngine_Vector2(function (val)
-        self:SetContentOffset(val,notUpdateView)
+        self:SetContentOffset(val)
     end))
 end
 
@@ -242,51 +236,51 @@ function ScrollView:_onScrolling()
     end
 end
 
-function ScrollView:SetTop(duration,notUpdateView)
+function ScrollView:SetTop(duration)
     if not self.Vertical then
         return
     end
     local offset = Vector2(self._contentX,self._viewRect.sizeDelta.y - self._innHeight)
     if duration then
-        self:SetContentOffsetInDuration(offset,duration,notUpdateView)
+        self:SetContentOffsetInDuration(offset,duration)
     else
-        self:SetContentOffset(offset,notUpdateView)
+        self:SetContentOffset(offset)
     end
 end
 
-function ScrollView:SetDown(duration,notUpdateView)
+function ScrollView:SetDown(duration)
     if not self.Vertical then
         return
     end
     local offset = Vector2(self._contentX,0)
     if duration then
-        self:SetContentOffsetInDuration(offset,duration,notUpdateView)
+        self:SetContentOffsetInDuration(offset,duration)
     else
-        self:SetContentOffset(offset,notUpdateView)
+        self:SetContentOffset(offset)
     end
 end
 
-function ScrollView:SetLeft(duration,notUpdateView)
+function ScrollView:SetLeft(duration)
     if not self.Horizontal then
         return 
     end
     local offset = Vector2(0,self._contentY)
     if duration then
-        self:SetContentOffsetInDuration(offset,duration,notUpdateView)
+        self:SetContentOffsetInDuration(offset,duration)
     else
-        self:SetContentOffset(offset,notUpdateView)
+        self:SetContentOffset(offset)
     end
 end
 
-function ScrollView:SetRight(duration,notUpdateView)
+function ScrollView:SetRight(duration)
     if not self.Horizontal then
         return 
     end
     local offset = Vector2(self._viewRect.sizeDelta.x - self._innWidth,self._contentY)
     if duration then
-        self:SetContentOffsetInDuration(offset,duration,notUpdateView)
+        self:SetContentOffsetInDuration(offset,duration)
     else
-        self:SetContentOffset(offset,notUpdateView)
+        self:SetContentOffset(offset)
     end
 end
 
