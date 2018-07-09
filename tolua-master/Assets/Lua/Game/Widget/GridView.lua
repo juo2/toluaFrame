@@ -140,6 +140,7 @@ function GridView:_updatePositions()
             height = height - self._cellsSize.y
         end 
     end
+    Util.dump(self._positions,"self._positions")
     self:SetContentSize(Vector2(self._columns * self._cellsSize.x,self._rows * self._cellsSize.y))
 end
 
@@ -160,7 +161,6 @@ end
 function GridView:_removeCellInvisible()
     local beiginIdx = self:_cellBeginIndexFromOffset()
     local endIdx = self:_cellEndIndexFromOffset()
-
     for k,v in pairs(self._cellUseList) do
         if v.index < beiginIdx or v.index > endIdx then
             if self:_IsUseContainIndex(k) then
@@ -193,6 +193,7 @@ function GridView:_addCellUse(index)
     if cell then
         cell:Awake(index,self._positions[index])
         self:_updateCellHandleInner(index,cell)
+        self._cellUseList[index] = cell
     else
         table.insert(self._cellLoadList,index)
     end
@@ -273,11 +274,7 @@ function GridView:_cellEndIndexFromOffset()
         index = self._cellCount - math.floor( offset / self._cellsSize.x )* self._rows
     elseif self.Vertical then
         local offset = math.max( 0,-contentOffset.y / self._cellsSize.y)  
-        if (self._rows - math.floor(offset)) * self._columns < 0 then
-            index = self._cellCount
-        else
-            index = (self._rows - math.floor(offset)) * self._columns - (self._rows * self._columns - self._cellCount)
-        end
+        index = math.min( self._cellCount,(self._rows - math.floor(offset)) * self._columns)
     end
 
     return index

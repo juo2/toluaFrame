@@ -17,11 +17,12 @@ ScrollView._innWidth = 0
 ScrollView._innHeight = 0
 ScrollView._contentX = 0
 ScrollView._contentY = 0
+ScrollView._border = Vector2(200,200)
 
 --可设置的参数
 ScrollView.Dragable = true
 ScrollView.Horizontal = true
-ScrollView.Vertical = false
+ScrollView.Vertical = true
 ScrollView.Inertia = true
 ScrollView.ResistanceSpeed = 0.65
 ScrollView.LimitValue = 1
@@ -75,7 +76,7 @@ end
 function ScrollView:_updateLimitOffset()
     local size = Vector2(self._viewRect.sizeDelta.x,self._viewRect.sizeDelta.y)
     local innSize = Vector2(self._innWidth,self._innHeight)
-
+    
     self._maxOffset.x = 0
     self._maxOffset.y = 0
 
@@ -89,16 +90,25 @@ function ScrollView:_updateLimitOffset()
     if not self.Vertical then
         self._minOffset.y = 0
     end
+
 end
 
 --边界检测
-function ScrollView:_validateOffset(point)
+function ScrollView:_validateOffset(point,border)
     local x = point.x
     local y = point.y
-    x = math.max(x, self._minOffset.x)
-    x = math.min(x, self._maxOffset.x)
-    y = math.max(y, self._minOffset.y)
-    y = math.min(y, self._maxOffset.y)
+    
+    if not self.Horizontal and border then
+        border.x = 0
+    end
+    if not self.Vertical and border then
+        border.y = 0
+    end
+
+    x = math.max(x, self._minOffset.x - (border and border.x or 0))
+    x = math.min(x, self._maxOffset.x + (border and border.x or 0))
+    y = math.max(y, self._minOffset.y - (border and border.y or 0))
+    y = math.min(y, self._maxOffset.y + (border and border.y or 0))
 
     if point.x ~= x or point.y ~= y then
         point.x = x;
@@ -116,12 +126,18 @@ function ScrollView:OnBeginDrag(eventData)
     if self.Dragable then
         self._dragging = true
         --记录一开始的点
+        self:StopAnim()
+        self:EndInertia()
         local point = self.transform:InverseTransformPoint(eventData.position)
         self._lastMovePoint = point;
+        
         self:_onScrolling()
     end
 end
 
+--1.跟随鼠标的位置移动
+--2.移动到边界处缓慢移动
+--3.移动到边界+50处不要移动
 function ScrollView:OnDrag(eventData)
     if self.Dragable then
         local point = self.transform:InverseTransformPoint(eventData.position)
@@ -137,9 +153,14 @@ function ScrollView:OnDrag(eventData)
         end
 
         self._scrollDistance = self._scrollDistance * self.dragSpeed
+        
         local vec = self:GetContentOffset() + self._scrollDistance
         if self:_validateOffset(vec) then
-            self._scrollDistance = self._scrollDistance * self.dragValidateSpeed
+            self._scrollDistance  = self._scrollDistance * self.dragValidateSpeed
+            local vec = self:GetContentOffset() + self._scrollDistance
+            if self:_validateOffset(vec,self._border) then
+                self._scrollDistance = Vector2.zero
+            end
         end
         self:SetContentOffset(self:GetContentOffset() + self._scrollDistance)
     end
@@ -286,6 +307,11 @@ end
 
 function ScrollView:SetData(param)
 
+end
+
+function ScrollView:StopAnim()
+    LeanTween.cancel(self._tweenMaker)
+    self._scrollDistance = Vector2.zero
 end
 
 function ScrollView:OnDestroy()

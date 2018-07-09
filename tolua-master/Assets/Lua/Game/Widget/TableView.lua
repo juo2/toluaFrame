@@ -12,9 +12,7 @@ function TableView:SetParam(param)
 
     if param.vertical then
         self:SetColumns(1) 
-        self:SetRows(param.cellCount)
     elseif param.horizontal then
-        self:SetColumns(param.cellCount) 
         self:SetRows(1)
     end
     self.Vertical = param.vertical or false
@@ -52,7 +50,6 @@ end
 function TableView:_updateCellHandleInner(index,cell)
     if self.onCellHandle and cell and not self:_isHandle(index) then
         self.onCellHandle(index,cell.object)
-        self._IsHandleMap[index] = true
     end
 end
 
